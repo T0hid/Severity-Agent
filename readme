@@ -1,0 +1,126 @@
+HPO Classification Agent with Hybrid RAG
+
+This repository contains an advanced ReAct (Reasoning + Acting) Agent designed to automate the classification and clinical annotation of Human Phenotype Ontology (HPO) terms.
+
+The system leverages a Hybrid RAG (Retrieval-Augmented Generation) architecture, combining local medical knowledge bases with live external searches to provide accurate, evidence-backed classifications.
+
+🚀 Key Features
+
+Hybrid RAG System: Combines semantic vector search (FAISS + PubMedBERT) with lexical search (BM25) for high-recall document retrieval.
+
+ReAct Agent Loop: Implements a dynamic reasoning loop where the AI plans steps, queries tools (Ontology, RAG, PubMed), and iteratively gathers context before making a final decision.
+
+Multi-Source Integration:
+
+Local Ontology: Direct lookups in hp.obo using pronto.
+
+Local RAG: Search against a pre-built medical knowledge index.
+
+Live PubMed: Real-time fetching of abstracts via Biopython (Entrez).
+
+Production Ready:
+
+Concurrency: Multi-threaded processing (ThreadPoolExecutor) for high throughput.
+
+State Management: Built-in caching (pickle) and checkpointing (json) to resume interrupted runs.
+
+Cost Tracking: Estimates token usage and API costs.
+
+🛠️ Prerequisites
+
+Python 3.9+
+
+An OpenAI API Key (or compatible OpenRouter key)
+
+NCBI Entrez Email (for PubMed access)
+
+📦 Installation
+
+Clone the repository:
+
+git clone [https://github.com/your-username/hpo-classifier.git](https://github.com/your-username/hpo-classifier.git)
+cd hpo-classifier
+
+
+Install dependencies:
+
+pip install pandas numpy requests bio sentence-transformers rank_bm25 faiss-cpu pronto tqdm psutil
+
+
+Environment Setup:
+Set the following environment variables (or create a .env file loaded by your environment):
+
+export OPENAI_API_KEY="sk-..."
+export OPENAI_API_URL="[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)" # Optional, defaults to OpenAI
+export ENTREZ_EMAIL="your.email@example.com"
+export MODEL_NAME="gpt-4-turbo"
+export BASE_DIR="./data"
+
+
+📂 Data Directory Structure
+
+The system expects a specific data structure defined by BASE_DIR. Ensure the following files exist before running:
+
+data/
+├── input.csv             # CSV containing 'hpo_id' column
+├── hp.obo                # Human Phenotype Ontology file
+├── prompts.json          # Agent prompts configuration
+└── rag_index/            # Pre-built RAG artifacts
+    ├── docs.faiss        # FAISS index file
+    ├── bm25.pkl          # BM25 object
+    └── documents.pkl     # Raw text content for retrieved docs
+
+
+⚙️ Configuration (prompts.json)
+
+The agent relies on a prompts.json file to drive its reasoning. Ensure it follows this structure:
+
+{
+  "planning_prompt": "You are a ReAct agent... Current state: {state}. Actions: [get_hpo_context, search_rag, search_pubmed, classify]...",
+  "transform_query": "Generate targeted clinical search queries for: {term}...",
+  "classification_prompt": "Analyze the following data and classify the HPO term. HPO: {hpo_data}, Evidence: {rag_data}..."
+}
+
+
+🏃 Usage
+
+Run the main pipeline:
+
+python main.py
+
+
+The script will:
+
+Load the RAG index and Ontology.
+
+Read HPO terms from input.csv.
+
+Spin up parallel worker threads.
+
+Process terms via the ReAct loop.
+
+Save results incrementally to data/output/results.csv and logs to data/output/agent_logs.json.
+
+📊 Outputs
+
+output/results.csv: Contains the final classification JSON, reasoning, and cost for each HPO term.
+
+output/agent_logs.json: Detailed execution traces showing the agent's thought process and tool usage step-by-step.
+
+cache/: Pickle files allowing the system to skip previously processed terms.
+
+🧩 Architecture
+
+graph TD
+    A[Input CSV] --> B(Job Queue)
+    B --> C{ReAct Agent Thread}
+    C -->|Tool: Context| D[HPO Ontology .obo]
+    C -->|Tool: Search| E[Hybrid RAG (FAISS/BM25)]
+    C -->|Tool: Search| F[PubMed API]
+    C -->|Reasoning| G[LLM (GPT-4)]
+    C -->|Result| H[Output CSV & Logs]
+
+
+📄 License
+
+[Insert your license here, e.g., MIT, Apache 2.0]
