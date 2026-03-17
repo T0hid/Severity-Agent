@@ -53,7 +53,7 @@ Set the following environment variables (or create a .env file loaded by your en
 export OPENAI_API_KEY="sk-..."
 export OPENAI_API_URL="[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)" # Optional, defaults to OpenAI
 export ENTREZ_EMAIL="your.email@example.com"
-export MODEL_NAME="gpt-4-turbo"
+export MODEL_NAME="..."
 export BASE_DIR="./data"
 
 
